@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calyzones</title>
+
+    <!-- Include Mapbox GL JS JavaScript and CSS files -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+
+    <!-- Include Mapbox Places plugin -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' rel='stylesheet' />
+
+    <!-- Include Mapbox Directions plugin -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v5.0.4/mapbox-gl-directions.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v5.0.4/mapbox-gl-directions.css' rel='stylesheet' />
+
+    <!-- Include Mapbox Matrix plugin -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v5.0.4/mapbox-gl-directions.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v5.0.4/mapbox-gl-directions.css' rel='stylesheet' />
+
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { width: 100%; height: 400px; }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .logo {
+            max-width: 100%;
+            height: auto;
+        }
+        .geocoder-container {
+            margin-bottom: 10px;
+        }
+        .buttons-container {
+            margin-top: 10px;
+        }
+        .buttons-container button {
+            margin: 5px;
+        }
+        .destination-inputs {
+            margin-top: 10px;
+        }
+        .destination-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .destination-input input {
+            flex: 1;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>C A L Y B R E</h1>
+        <img src="Calyzones Logo_1.png" alt="Calyzones Logo" class="logo">
+        
+        <!-- Destination Search Boxes -->
+        <div class="destination-inputs" id="destination-inputs"></div>
+
+        <!-- Buttons Container -->
+        <div class="buttons-container">
+            <button onclick="addAddress()">Add Destination</button>
+            <button onclick="findMidpoint()">Find Mid-point</button>
+        </div>
+
+        <!-- Display live travel information -->
+        <div id="travel-info">
+            <p id="travel-time">Travel Time: N/A</p>
+            <p id="travel-distance">Distance: N/A</p>
+        </div>
+    </div>
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoicml5YWFkaGRlc2FpIiwiYSI6ImNsb3d3ODRrZDE4cjIyamxsOGVuaHJuZmkifQ.NHKGfl2vM1zDlgmkuiPPBw';
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [24, -28], // South Africa's approximate center coordinates
+            zoom: 5
+        });
+
+        // Add the geocoder control to the map
+        var geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl
+        });
+
+        document.getElementById('destination-inputs').appendChild(geocoder.onAdd(map));
+
+        // Array to store coordinates of selected destinations
+        var destinationCoordinates = [];
+
+        // Function to handle the selection of a location in the geocoder
+        geocoder.on('result', function (result) {
+            // Add a marker on the map at the selected location
+            var marker = new mapboxgl.Marker()
+                .setLngLat(result.result.center)
+                .addTo(map);
+
+            // Add the selected location's coordinates to the array
+            destinationCoordinates.push(result.result.center);
+
+            // Call the function to update travel information
+            updateTravelInfo();
+        });
+
+        // Function to update travel information using Mapbox Directions API
+        function updateTravelInfo() {
+            // Ensure at least two destinations are selected
+            if (destinationCoordinates.length >= 2) {
+                // Make a request to Mapbox Directions API
+                var coordinates = destinationCoordinates.map(coord => `${coord[0]},${coord[1]}`).join(';');
+                fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?access_token=${mapboxgl.accessToken}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update travel information on the page
+                        var route = data.routes[0];
+                        document.getElementById('travel-time').innerText = `Travel Time: ${route.duration.toFixed(2)} seconds`;
+                        document.getElementById('travel-distance').innerText = `Distance: ${route.distance.toFixed(2)} meters`;
+
+                        // Draw the route on the map
+                        if (map.getSource('route')) {
+                            map.getSource('route').setData({
+                                type: 'Feature',
+                                properties: {},
+                                geometry: route.geometry
+                            });
+                        } else {
+                            map.addSource('route', {
+                                type: 'geojson',
+                                data: {
+                                    type: 'Feature',
+                                    properties: {},
+                                    geometry: route.geometry
+                                }
+                            });
+
+                            map.addLayer({
+                                id: 'route',
+                                type: 'line',
+                                source: 'route',
+                                layout: {
+                                    'line-join': 'round',
+                                    'line-cap': 'round'
+                                },
+                                paint: {
+                                    'line-color': '#3887be',
+                                    'line-width': 5,
+                                    'line-opacity': 0.75
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching travel information:', error);
+                    });
+
+                // Make a request to Mapbox Matrix API
+                var sources = [0];
+                var destinations = Array.from({ length: destinationCoordinates.length - 1 }, (_, i) => i + 1);
+                fetch(`https://api.mapbox.com/directions-matrix/v1/mapbox/driving/${coordinates}?sources=${sources.join(';')}&destinations=${destinations.join(';')}&access_token=${mapboxgl.accessToken}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Log the matrix data to the console
+                        console.log('Matrix Data:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching matrix information:', error);
+                    });
+            }
+        }
+
+        // Function to add a new destination input field
+        function addAddress() {
+            var container = document.getElementById('destination-inputs');
+            var newAddress = document.createElement('div');
+            newAddress.className = 'destination-input';
+            newAddress.innerHTML = '';
+            container.appendChild(newAddress);
+            var geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl
+            });
+            newAddress.appendChild(geocoder.onAdd(map));
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+/* Body styles */
+body {
+    padding-top: 20px;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #001529, #000000);
+    color: white;
+    text-align: center;
+}
+
+/* Container styles */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+}
+
+/* Header styles */
+h1 {
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-shadow: 2px 2px 4px black;
+}
+
+/* Address input container styles */
+.address-inputs {
+    margin-top: 20px;
+}
+
+/* Address input styles */
+.address-input {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Text input styles */
+input[type="text"] {
+    flex: 1;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+/* Remove button styles */
+.remove-button {
+    background-color: #FF0000;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+/* Remove button hover styles */
+.remove-button:hover {
+    background-color: #CC0000;
+}
+
+/* Generic button styles */
+button {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Generic button hover styles */
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Map container styles */
+#map-container {
+    margin-top: 20px;
+}
+
+/* Map styles */
+#map {
+    height: 400px;
+    width: 100%;
+}
+
+/* Logo styles */
+.logo {
+    max-width: 400px;
+    margin-bottom: 10px;
+    margin-top: 5px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Initial address input remove button styles */
+.address-input.initial button.remove-button {
+    display: none;
+}
+
+/* Find midpoint button styles */
+.find-midpoint {
+    background-color: #007BFF;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+/* Find midpoint button hover styles */
+.find-midpoint:hover {
+    background-color: #0056b3;
+}
+
+/* Mapbox Geocoding Control styles */
+.mapboxgl-ctrl-geocoder {
+    background-color: white;
+    color: black;
+}
+
+/* Mapbox Geocoding Control container styles */
+#geocoder-container {
+    position: absolute;
+    top: calc(80% - 120px); /* Adjust the value based on your design */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* Mapbox Directions and Matrix Control styles */
+.mapbox-directions-control,
+.mapbox-matrix-control {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+}
